@@ -1,7 +1,12 @@
 ! /bin/zsh
 
 openproject() {
-  project=$(find ~/dotfiles ~/dev/lucify ~/dev/personal ~/dev/wybble ~/dev  -mindepth 1 -maxdepth 1 -type d -o -type d | grep -E '/(dev|dotfile)' | fzf)
+  # project=$(find ~/dotfiles ~/dev/lucify ~/dev/personal ~/dev/wybble ~/dev  -mindepth 1 -maxdepth 1 -type d -o -type d | grep -E '/(dev|dotfile)' | fzf)
+  project=$(find ~/dotfiles ~/dev/lucify ~/dev/personal ~/dev/wybble ~/dev \
+            -mindepth 1 -maxdepth 1 -type d \
+            -not -path '*/.git*' | \
+            grep -E '/(dev|dotfile)' | \
+            fzf)
   project_name=$(echo "$project" | sed 's/\./_/g')
 
   if [ -n "$project_name " ]; then
