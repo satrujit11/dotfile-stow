@@ -1,5 +1,5 @@
 return {
-  { "folke/neoconf.nvim", cmd = "Neoconf" },
+  { "folke/neoconf.nvim",       cmd = "Neoconf" },
   "folke/neodev.nvim",
   'nvim-telescope/telescope-ui-select.nvim',
   {
@@ -30,12 +30,10 @@ return {
   {
     'numToStr/Comment.nvim',
     opts = {
-      -- add any options here
     }
   },
-
+  { "CRAG666/code_runner.nvim", config = true },
   "prettier/vim-prettier",
-  'numToStr/Comment.nvim',
   {
     'lewis6991/gitsigns.nvim',
     config = function()
