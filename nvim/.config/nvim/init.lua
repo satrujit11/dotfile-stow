@@ -2,6 +2,7 @@ vim.loader.enable()
 vim.g.mapleader = " "
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 vim.opt.wrap = false
+vim.opt.termguicolors = true
 
 -- vim.keymap.set("n", "gb", vim.cmd.b#)
 
@@ -67,52 +68,52 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup("plugins")
 
 
--- Create a new group for LspAttach autocommands
-vim.api.nvim_create_augroup("MyLspGroup", { clear = false })
-
--- Define the callback function for LspAttach
-local function on_lsp_attach(_, bufnr)
-  local opts = { buffer = bufnr }
-  vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
-  vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
-  vim.keymap.set("n", "<leader>k", function() vim.diagnostic.open_float() end, opts)
-  vim.keymap.set("n", "<leader>ca", function() vim.lsp.buf.code_action() end, opts)
-  vim.keymap.set("n", "<leader>rr", function() vim.lsp.buf.references() end, opts)
-  vim.keymap.set("n", "<leader>rn", function() vim.lsp.buf.rename() end, opts)
-  vim.keymap.set("n", "<leader>td", function() vim.lsp.buf.type_definition() end, opts)
-  vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
-  vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end, opts)
-  vim.keymap.set("n", "[d", function() vim.diagnostic.goto_prev() end, opts)
-end
-
-
-local function format_on_save(_, bufnr)
-  local general_augroup = vim.api.nvim_create_augroup("GeneralFormatOnSave", { clear = true })
-  vim.api.nvim_create_autocmd("BufWritePre", {
-    buffer = bufnr,
-    callback = function()
-      vim.lsp.buf.format({ async = false })
-    end,
-    group = general_augroup,
-  })
-end
-
-local function lsp_signature(_, bufnr)
-  require("lsp_signature").on_attach({}, bufnr)
-end
-
--- Attach the callback function to the LspAttach event
-vim.api.nvim_create_autocmd("LspAttach", {
-  group = "MyLspGroup",
-  callback = function(ev)
-    local client = vim.lsp.get_client_by_id(ev.data.client_id)
-    if client then
-      format_on_save(client, ev.buf)
-      on_lsp_attach(client, ev.buf)
-      lsp_signature(client, ev.buf)
-    end
-  end,
-})
+-- -- Create a new group for LspAttach autocommands
+-- vim.api.nvim_create_augroup("MyLspGroup", { clear = false })
+--
+-- -- Define the callback function for LspAttach
+-- local function on_lsp_attach(_, bufnr)
+--   local opts = { buffer = bufnr }
+--   vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
+--   vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
+--   vim.keymap.set("n", "<leader>k", function() vim.diagnostic.open_float() end, opts)
+--   vim.keymap.set("n", "<leader>ca", function() vim.lsp.buf.code_action() end, opts)
+--   vim.keymap.set("n", "<leader>rr", function() vim.lsp.buf.references() end, opts)
+--   vim.keymap.set("n", "<leader>rn", function() vim.lsp.buf.rename() end, opts)
+--   vim.keymap.set("n", "<leader>td", function() vim.lsp.buf.type_definition() end, opts)
+--   vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
+--   vim.keymap.set("n", "]d", function() vim.diagnostic.goto_next() end, opts)
+--   vim.keymap.set("n", "[d", function() vim.diagnostic.goto_prev() end, opts)
+-- end
+--
+--
+-- local function format_on_save(_, bufnr)
+--   local general_augroup = vim.api.nvim_create_augroup("GeneralFormatOnSave", { clear = true })
+--   vim.api.nvim_create_autocmd("BufWritePre", {
+--     buffer = bufnr,
+--     callback = function()
+--       vim.lsp.buf.format({ async = false })
+--     end,
+--     group = general_augroup,
+--   })
+-- end
+--
+-- local function lsp_signature(_, bufnr)
+--   require("lsp_signature").on_attach({}, bufnr)
+-- end
+--
+-- -- Attach the callback function to the LspAttach event
+-- vim.api.nvim_create_autocmd("LspAttach", {
+--   group = "MyLspGroup",
+--   callback = function(ev)
+--     local client = vim.lsp.get_client_by_id(ev.data.client_id)
+--     if client then
+--       format_on_save(client, ev.buf)
+--       on_lsp_attach(client, ev.buf)
+--       lsp_signature(client, ev.buf)
+--     end
+--   end,
+-- })
 
 
 -- Define the function to handle LSP detachment

@@ -139,3 +139,7 @@ export PATH="$PATH":"$HOME/.pub-cache/bin"
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# Go tools
+export PATH=$PATH:/home/sarujit/.asdf/installs/golang/1.23.3/packages/bin
+
