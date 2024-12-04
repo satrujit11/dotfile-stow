@@ -1,0 +1,16 @@
+#!/usr/bin/expect
+
+# Define variables
+set timeout -1
+set host "root@ipaddress"
+set password "password"
+
+# Start SSH connection
+spawn ssh $host
+expect {
+    "password:" { send "$password\r" }
+}
+
+# Interact with the session
+interact
+
