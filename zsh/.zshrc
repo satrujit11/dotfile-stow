@@ -87,12 +87,13 @@ precmd() {
   echo -e "\e[38;2;61;61;61m$(printf '%*s' "$cols" | tr ' ' '-')\e[0m"
 }
 
-function run-project-script(){
-  /home/sarujit/project_search_tmux.sh
+function run-tmux-projects(){
+  tmux-projects
+  # /home/sarujit/project_search_tmux.sh
 }
 
-zle -N run-project-script
-bindkey '^P' run-project-script
+zle -N run-tmux-projects
+bindkey '^P' run-tmux-projects
 
 alias n="nvim ."
 alias tk="pkill -f tmux"
@@ -141,5 +142,8 @@ export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 # Go tools
-export PATH=$PATH:/home/sarujit/.asdf/installs/golang/1.23.3/packages/bin
+export PATH=$PATH:$HOME/.asdf/installs/golang/1.23.3/packages/bin
+export CHROME_EXECUTABLE=/snap/bin/brave
 
+# Custom Scripts
+export PATH=$PATH:$HOME/dotfiles/local_scripts/scripts
