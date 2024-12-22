@@ -144,6 +144,19 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 # Go tools
 export PATH=$PATH:$HOME/.asdf/installs/golang/1.23.3/packages/bin
 export CHROME_EXECUTABLE=/snap/bin/brave
+export CAPACITOR_ANDROID_STUDIO_PATH=/snap/bin/android-studio
 
 # Custom Scripts
 export PATH=$PATH:$HOME/dotfiles/local_scripts/scripts
+
+
+# Personal Aliases
+alias ssh-wybble="ssh root@64.227.140.248"
+
+# pnpm
+export PNPM_HOME="/home/sarujit/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

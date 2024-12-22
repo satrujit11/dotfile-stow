@@ -1,0 +1,47 @@
+#!/bin/zsh
+
+# Check if the JSON file is passed as an argument
+if [ -z "$1" ]; then
+  echo "Usage: $0 <path_to_json_file>"
+  exit 1
+fi
+
+JSON_FILE=$1
+
+# Check if the JSON file exists
+if [ ! -f "$JSON_FILE" ]; then
+  echo "File not found: $JSON_FILE"
+  exit 1
+fi
+
+# Read projects from the JSON file using jq and iterate over them
+jq -c '.projects[]' "$JSON_FILE" | while read project; do
+  project_name=$(echo $project | jq -r '.name')
+  project_directory=$(echo $project | jq -r '.directory')
+  project_command=$(echo $project | jq -r '.command')
+
+  # Extract the directory name from the full path for the tmux session name
+  tmux_session_name=$(basename $project_directory)
+
+  echo "Running project: $project_name"
+  echo "Project directory: $project_directory"
+  echo "Executing command: $project_command"
+
+  # Check if tmux session exists with the directory name
+  tmux has-session -t $tmux_session_name 2>/dev/null
+
+  if [ $? != 0 ]; then
+    # Create a new tmux session named after the directory, run the command in the first window
+    tmux new-session -d -s $tmux_session_name -c $project_directory "$project_command"
+    echo "Created new tmux session: $tmux_session_name"
+  else
+    # Attach to the existing session
+    echo "Using existing tmux session: $tmux_session_name"
+  fi
+
+  # Attach to the tmux session
+  tmux attach-session -t $tmux_session_name
+
+  echo "-----------------------------------"
+done
+

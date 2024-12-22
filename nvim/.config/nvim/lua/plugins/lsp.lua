@@ -124,15 +124,15 @@ return {
     end
 
 
-    local function format_on_save(_, bufnr)
-      local general_augroup = vim.api.nvim_create_augroup("GeneralFormatOnSave", { clear = true })
-      vim.api.nvim_create_autocmd("BufWritePre", {
-        buffer = bufnr,
-        callback = function()
-          vim.lsp.buf.format({ async = false })
-        end,
-        group = general_augroup,
-      })
+    local function format_on_save(client, bufnr)
+      if client.supports_method("textDocument/formatting") then
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          buffer = bufnr,
+          callback = function()
+            vim.lsp.buf.format({ bufnr = bufnr, id = client.id })
+          end,
+        })
+      end
     end
 
     local function lsp_signature(_, bufnr)
@@ -141,9 +141,9 @@ return {
 
     -- Attach the callback function to the LspAttach event
     vim.api.nvim_create_autocmd("LspAttach", {
-      group = "MyLspGroup",
       callback = function(ev)
         local client = vim.lsp.get_client_by_id(ev.data.client_id)
+        if not client then return end
         if client then
           format_on_save(client, ev.buf)
           on_lsp_attach(client, ev.buf)
