@@ -108,3 +108,4 @@ end
 vim.api.nvim_command('command! Todo lua open_floating_window_with_file("~/notes/Tasks.md", "Todo List")')
 vim.api.nvim_command('command! Note lua open_floating_window_with_file("~/notes/Note.md", "Quick Note")')
 vim.api.nvim_command('command! Plan lua open_floating_window_with_file(vim.loop.cwd() .. "/Plan.md", "Quick Plans")')
+vim.api.nvim_command('command! Finance lua open_floating_window_with_file("~/notes/Finance.md", "Finance")')
