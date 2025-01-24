@@ -8,7 +8,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+ZSH_THEME="robbyrussell" # set by `omz`
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -95,6 +95,8 @@ function run-tmux-projects(){
 zle -N run-tmux-projects
 bindkey '^P' run-tmux-projects
 
+alias tmux="tmux -u"
+
 alias n="nvim ."
 alias tk="pkill -f tmux"
 alias ta="tmux attach"
@@ -143,11 +145,16 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 
 # Go tools
 export PATH=$PATH:$HOME/.asdf/installs/golang/1.23.3/packages/bin
-export CHROME_EXECUTABLE=/snap/bin/brave
-export CAPACITOR_ANDROID_STUDIO_PATH=/snap/bin/android-studio
+export PATH=$PATH:$HOME/android-studio/bin
+export CHROME_EXECUTABLE=/usr/bin/brave
+export CAPACITOR_ANDROID_STUDIO_PATH=$HOME/android-studio
+
+# Java
+export JAVA_HOME=$(asdf where java)
+export PATH=$JAVA_HOME/bin:$PATH
 
 # Custom Scripts
-export PATH=$PATH:$HOME/dotfiles/local_scripts/scripts
+export PATH=$PATH:$HOME/dotfile-stow/local_scripts/scripts
 
 
 # Personal Aliases

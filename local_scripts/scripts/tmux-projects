@@ -2,7 +2,7 @@
 
 # tmux-project() {
   # project=$(find ~/dotfiles ~/dev/lucify ~/dev/personal ~/dev/wybble ~/dev  -mindepth 1 -maxdepth 1 -type d -o -type d | grep -E '/(dev|dotfile)' | fzf)
-project=$(find ~/dotfiles ~/dev/lucify ~/dev/personal ~/dev/wybble ~/dev \
+project=$(find ~/dotfile-stow ~/dev/lucify ~/dev/personal ~/dev/wybble ~/dev \
           -mindepth 1 -maxdepth 1 -type d \
           -not -path '*/.git*' | \
           grep -E '/(dev|dotfile)' | \
