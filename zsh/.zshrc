@@ -161,9 +161,10 @@ export PATH=$PATH:$HOME/dotfile-stow/local_scripts/scripts
 alias ssh-wybble="ssh root@64.227.140.248"
 
 # pnpm
-export PNPM_HOME="/home/sarujit/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+export PATH="$HOME/.asdf/shims:$PATH"
