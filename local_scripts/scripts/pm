@@ -1,0 +1,254 @@
+#!/bin/bash
+
+# Database location
+DB="$HOME/.secrets/.secrets.db"
+
+# Initialize the database schema if not already set
+init_db() {
+  sqlite3 $DB <<EOF
+CREATE TABLE IF NOT EXISTS clients (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  contact TEXT
+);
+CREATE TABLE IF NOT EXISTS projects (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  description TEXT,
+  hourly_rate REAL
+);
+CREATE TABLE IF NOT EXISTS project_clients (
+  project_id INTEGER,
+  client_id INTEGER,
+  role TEXT,
+  PRIMARY KEY (project_id, client_id)
+);
+CREATE TABLE IF NOT EXISTS tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER,
+  client_id INTEGER,
+  description TEXT,
+  start_time TEXT,
+  end_time TEXT,
+  manual_charge REAL DEFAULT 0,
+  status TEXT DEFAULT 'pending'
+);
+EOF
+}
+
+# Function to print with colored output
+print_header() {
+  echo -e "\033[1;34m$1\033[0m"
+}
+
+# Add a new client to the database
+add_client() {
+  sqlite3 $DB "INSERT INTO clients (name, contact) VALUES ('$1', '$2');"
+  echo -e "\033[1;32m✅ Client added.\033[0m"
+}
+
+# List all clients in a nice format
+list_clients() {
+  print_header "📋 Clients"
+  echo "----------------------------------------"
+  sqlite3 $DB "SELECT id, name, contact FROM clients;" | column -s'|' -t | sed 's/^/| /; s/$/ |/' | column -t
+  echo "----------------------------------------"
+}
+
+# Add a new project to the database
+add_project() {
+  sqlite3 $DB "INSERT INTO projects (name, description, hourly_rate) VALUES ('$1', '$2', $3);"
+  echo -e "\033[1;32m✅ Project added.\033[0m"
+}
+
+# List all projects in a nice format
+list_projects() {
+  print_header "📋 Projects"
+  echo "----------------------------------------"
+  sqlite3 $DB "SELECT id, name, description, hourly_rate FROM projects;" | column -s'|' -t | sed 's/^/| /; s/$/ |/' | column -t
+  echo "----------------------------------------"
+}
+
+# Add a new task
+add_task() {
+  sqlite3 $DB "INSERT INTO tasks (project_id, client_id, description, start_time, end_time, manual_charge)
+    VALUES ($1, $2, '$3', '$4', '$5', $6);"
+  echo -e "\033[1;32m✅ Task added.\033[0m"
+}
+
+# List all tasks in a nice format
+list_tasks() {
+  print_header "📋 Tasks"
+  echo "------------------------------------------------------------"
+  sqlite3 $DB "SELECT t.id, p.name AS project_name, c.name AS client_name, t.description, t.start_time, t.end_time, t.status
+              FROM tasks t
+              JOIN projects p ON t.project_id = p.id
+              JOIN clients c ON t.client_id = c.id;" | column -s'|' -t | sed 's/^/| /; s/$/ |/' | column -t
+  echo "------------------------------------------------------------"
+}
+
+# List clients for a specific project
+list_project_clients() {
+  print_header "📋 Clients for Project ID $1"
+  echo "----------------------------------------"
+  sqlite3 $DB "SELECT c.id, c.name, pc.role FROM clients c
+              JOIN project_clients pc ON c.id = pc.client_id
+              WHERE pc.project_id = $1;" | column -s'|' -t | sed 's/^/| /; s/$/ |/' | column -t
+  echo "----------------------------------------"
+}
+
+# Add a client to a project
+add_client_to_project() {
+  sqlite3 $DB "INSERT INTO project_clients (project_id, client_id, role) VALUES ($1, $2, '$3');"
+  echo -e "\033[1;32m✅ Client added to project.\033[0m"
+}
+
+# Query tasks with optional filters and fuzzy search
+query_tasks() {
+  local sql="SELECT t.id, p.name AS project_name, c.name AS client_name, t.description, t.start_time, t.end_time, t.status 
+             FROM tasks t
+             JOIN projects p ON t.project_id = p.id
+             JOIN clients c ON t.client_id = c.id
+             WHERE 1=1"
+  
+  # Apply filters based on input (project ID, client ID, status, start date, end date, fuzzy search)
+  [[ -n "$1" ]] && sql="$sql AND t.project_id = $1"
+  [[ -n "$2" ]] && sql="$sql AND t.client_id = $2"
+  [[ -n "$3" ]] && sql="$sql AND t.status = '$3'"
+  [[ -n "$4" ]] && sql="$sql AND t.start_time >= '$4'"
+  [[ -n "$5" ]] && sql="$sql AND t.end_time <= '$5'"
+  [[ -n "$6" ]] && sql="$sql AND p.name LIKE '%$6%'"
+  [[ -n "$7" ]] && sql="$sql AND c.name LIKE '%$7%'"
+  [[ -n "$8" ]] && sql="$sql AND t.description LIKE '%$8%'"
+  
+  # Execute query and display results
+  print_header "🔍 Tasks"
+  echo "------------------------------------------------------------"
+  sqlite3 $DB "$sql;" | column -s'|' -t | sed 's/^/| /; s/$/ |/' | column -t
+  echo "------------------------------------------------------------"
+}
+
+# Report earnings based on client and/or project
+report_earnings() {
+  local client_id=$1
+  local project_id=$2
+
+  local sql="SELECT SUM((julianday(end_time) - julianday(start_time)) * 24 * p.hourly_rate + t.manual_charge)
+             FROM tasks t JOIN projects p ON p.id = t.project_id WHERE 1=1"
+
+  [[ -n "$client_id" ]] && sql="$sql AND t.client_id = $client_id"
+  [[ -n "$project_id" ]] && sql="$sql AND t.project_id = $project_id"
+
+  local earnings=$(sqlite3 $DB "$sql;")
+  echo -e "\033[1;33m💰 Total earnings: \$${earnings:-0.00}\033[0m"
+}
+
+# Update task status
+update_task_status() {
+  sqlite3 $DB "UPDATE tasks SET status = '$2' WHERE id = $1;"
+  echo -e "\033[1;32m✅ Task status updated to $2.\033[0m"
+}
+
+# Delete a task
+delete_task() {
+  sqlite3 $DB "DELETE FROM tasks WHERE id = $1;"
+  echo -e "\033[1;31m✅ Task deleted.\033[0m"
+}
+
+# Export tasks in JSON format
+export_tasks() {
+  sqlite3 $DB -json "SELECT * FROM tasks;"
+}
+
+# Analyze a question (Pretend to send to DeepSeek)
+analyze_deepseek() {
+  echo "(📡 Pretend we're sending to DeepSeek-OLaMA...)"
+  echo "Q: $1"
+  echo "A: This would be the answer from DeepSeek if integrated."
+}
+
+# Detailed CLI help with examples
+print_help() {
+  echo "Usage: $0 [command] [arguments]"
+  echo
+  echo "Commands:"
+  echo "  init                  - Initializes the database schema."
+  echo "  add-client NAME CONTACT- Adds a new client with name and contact information."
+  echo "  list-clients          - Lists all clients."
+  echo "  add-project NAME DESCRIPTION RATE - Adds a new project with name, description, and hourly rate."
+  echo "  list-projects         - Lists all projects."
+  echo "  add-task PROJECT_ID CLIENT_ID DESCRIPTION START_TIME END_TIME MANUAL_CHARGE - Adds a task."
+  echo "  list-tasks            - Lists all tasks."
+  echo "  list-project-clients PROJECT_ID - Lists clients for a specific project."
+  echo "  add-client-to-project PROJECT_ID CLIENT_ID ROLE - Adds a client to a project with a role."
+  echo "  query-tasks [PROJECT_ID] [CLIENT_ID] [STATUS] [FROM_DATE] [TO_DATE] [FUZZY_SEARCH_PROJECT] [FUZZY_SEARCH_CLIENT] [FUZZY_SEARCH_DESCRIPTION] - Query tasks with optional filters."
+  echo "  report-earnings CLIENT_ID PROJECT_ID - Reports earnings based on client and/or project."
+  echo "  update-task-status TASK_ID STATUS - Updates the status of a task."
+  echo "  delete-task TASK_ID   - Deletes a task."
+  echo "  export                - Exports tasks in JSON format."
+  echo "  analyze QUESTION      - Pretend to analyze a question."
+  echo
+  echo "Date Formats:"
+  echo "  Use YYYY-MM-DD for dates, for example: 2025-04-25"
+  echo "  Time Format: Use HH:MM:SS (24-hour format), for example: 14:30:00"
+  echo
+  echo "Examples:"
+  echo "  $0 add-client \"John Doe\" \"johndoe@example.com\""
+  echo "  $0 add-project \"Project A\" \"Description of project\" 50.0"
+  echo "  $0 add-task 1 1 \"Task description\" \"2025-04-25 09:00:00\" \"2025-04-25 17:00:00\" 200"
+  echo "  $0 query-tasks 1 1 \"completed\" \"2025-04-01\" \"2025-04-30\""
+  echo "  $0 report-earnings 1 1"
+}
+
+# CLI entrypoint with usage instructions
+case $1 in
+  init)
+    init_db
+    ;;
+  add-client)
+    add_client "$2" "$3"
+    ;;
+  list-clients)
+    list_clients
+    ;;
+  add-project)
+    add_project "$2" "$3" "$4"
+    ;;
+  list-projects)
+    list_projects
+    ;;
+  add-task)
+    add_task "$2" "$3" "$4" "$5" "$6" "$7"
+    ;;
+  list-tasks)
+    list_tasks
+    ;;
+  list-project-clients)
+    list_project_clients "$2"
+    ;;
+  add-client-to-project)
+    add_client_to_project "$2" "$3" "$4"
+    ;;
+  query-tasks)
+    query_tasks "$2" "$3" "$4" "$5" "$6" "$7" "$8"
+    ;;
+  report-earnings)
+    report_earnings "$2" "$3"
+    ;;
+  update-task-status)
+    update_task_status "$2" "$3"
+    ;;
+  delete-task)
+    delete_task "$2"
+    ;;
+  export)
+    export_tasks
+    ;;
+  analyze)
+    analyze_deepseek "$2"
+    ;;
+  *)
+    print_help
+    ;;
+esac
+

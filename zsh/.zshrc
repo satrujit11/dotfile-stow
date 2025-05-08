@@ -168,3 +168,15 @@ case ":$PATH:" in
 esac
 # pnpm end
 export PATH="$HOME/.asdf/shims:$PATH"
+
+export EDITOR="nvim"
+export VISUAL="nvim"
+
+## [Completion]
+## Completion scripts setup. Remove the following line to uninstall
+[[ -f /home/satrujit/.dart-cli-completion/zsh-config.zsh ]] && . /home/satrujit/.dart-cli-completion/zsh-config.zsh || true
+## [/Completion]
+
+export PATH="/home/satrujit/.shorebird/bin:$PATH"
+export PATH="$PATH":"$HOME/.pub-cache/bin"
+export PATH="$PATH:$(go env GOPATH)/bin"

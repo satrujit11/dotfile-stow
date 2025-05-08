@@ -6,5 +6,9 @@
         "before_each",
         "after_each",
         "open_floating_window_with_file"
+    ],
+    "diagnostics.disable": [
+        "undefined-doc-name",
+        "missing-fields"
     ]
 }

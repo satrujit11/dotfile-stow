@@ -1,0 +1,38 @@
+services:
+  app:
+    image: ghcr.io/maybe-finance/maybe:sha-68c570eed8810fd59b5b33cca51bbad5eabb4cb4
+    restart: unless-stopped
+    volumes:
+      - ../files/uploads:/app/uploads
+    environment:
+      DATABASE_URL: postgresql://maybe:maybe@db:5432/maybe
+      SECRET_KEY_BASE: "4aba5922a346cae1d42845cd87cb79a13e7eac220594fd4756e701d2dcc9cede5d2ee01c70a4eb2b9741dd8fa28d85c7c6bdc2b9f8f613031a83152dc4314cd5"
+      SELF_HOSTED: true
+      SYNTH_API_KEY: "7c037b7e9f0a0619ba21c1fa7975a4d9ca14cac0"
+      RAILS_FORCE_SSL: "false"
+      RAILS_ASSUME_SSL: "false"
+      GOOD_JOB_EXECUTION_MODE: async
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:16
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: maybe
+      POSTGRES_USER: maybe
+      POSTGRES_PASSWORD: maybe
+
+volumes:
+  db-data:
